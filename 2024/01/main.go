@@ -11,6 +11,11 @@ var list1 = []int{}
 var list2 = []int{}
 
 func main() {
+	part1()
+	part2()
+}
+
+func part1() {
 	prepareInput()
 
 	var distance = 0
@@ -21,7 +26,20 @@ func main() {
 		distance += absInt(num1 - num2)
 	}
 
-	println("distance:", distance)
+	println("part1:", distance)
+}
+
+func part2() {
+	prepareInput()
+
+	var distance = 0
+
+	for _, value := range list1 {
+		println(value, findAppears(list2, value))
+		distance += value * findAppears(list2, value)
+	}
+
+	println("part2:", distance)
 }
 
 func handleError(err error) {
@@ -33,6 +51,9 @@ func handleError(err error) {
 func prepareInput() {
 	data, err := os.ReadFile("input.txt")
 	handleError(err)
+
+	list1 = nil
+	list2 = nil
 
 	// Split the content into lines
 	lines := strings.Split(string(data), "\n")
@@ -73,4 +94,16 @@ func absInt(x int) int {
 		return -x
 	}
 	return x
+}
+
+func findAppears(list []int, search int) int {
+	result := 0
+
+	for _, value := range list {
+		if value == search {
+			result++
+		}
+	}
+
+	return result
 }
