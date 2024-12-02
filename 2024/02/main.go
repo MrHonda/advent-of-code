@@ -14,6 +14,11 @@ const (
 )
 
 func main() {
+	part1()
+	part2()
+}
+
+func part1() {
 	data, err := os.ReadFile("input.txt")
 	handleError(err)
 
@@ -62,7 +67,30 @@ func main() {
 		}
 	}
 
-	fmt.Println("valid reports:", len(validIndexes))
+	fmt.Println("part 1:", len(validIndexes))
+}
+
+func part2() {
+	data, err := os.ReadFile("input.txt")
+	handleError(err)
+
+	lines := strings.Split(string(data), "\n")
+
+	validIndexes := []int{}
+
+	for i, line := range lines {
+		values := parseLine(line)
+
+		valid := validateValues(values, true)
+
+		if valid {
+			validIndexes = append(validIndexes, i)
+		} else {
+			fmt.Println(line)
+		}
+	}
+
+	fmt.Println("part 2:", len(validIndexes))
 }
 
 func handleError(err error) {
@@ -77,4 +105,70 @@ func isIncreasing(diff int) bool {
 
 func isDecreasing(diff int) bool {
 	return diff >= -3 && diff <= -1
+}
+
+func getType(diff int) int {
+	if isIncreasing(diff) {
+		return type_increasing
+	}
+	if isDecreasing(diff) {
+		return type_decreasing
+	}
+
+	return type_none
+}
+
+func isValidType(prevType int, currentType int) bool {
+	return (prevType == type_none && currentType != type_none) || (prevType != type_none && prevType == currentType)
+}
+
+func parseLine(line string) []int {
+	values := strings.Split(string(strings.ReplaceAll(line, "\r", "")), " ")
+	result := []int{}
+
+	for _, value := range values {
+		parsedValue, error := strconv.Atoi(value)
+		handleError(error)
+		result = append(result, parsedValue)
+	}
+
+	return result
+}
+
+func validateValues(values []int, tryAgain bool) bool {
+	prevType := type_none
+
+	for j := range values {
+		if j == 0 {
+			continue
+		}
+
+		currentValue := values[j]
+		prevValue := values[j-1]
+
+		currentType := getType(currentValue - prevValue)
+
+		if isValidType(prevType, currentType) {
+			prevType = currentType
+		} else if tryAgain == true {
+			//brute force
+			for k := range values {
+				if validateValues(updateSlice(values, k), false) {
+					return true
+				}
+			}
+			return false
+		} else {
+			return false
+		}
+	}
+
+	return true
+}
+
+func updateSlice(row []int, index int) []int {
+	row2 := make([]int, len(row))
+	copy(row2, row)
+	slice := append(row2[:index], row2[index+1:]...)
+	return slice
 }
