@@ -13,6 +13,7 @@ func main() {
 	handleError(err)
 
 	part1(string(data))
+	part2(string(data))
 }
 
 func part1(data string) {
@@ -27,6 +28,34 @@ func part1(data string) {
 	}
 
 	fmt.Println("part1:", result)
+}
+
+func part2(data string) {
+	r := regexp.MustCompile(`do\(\)|don't\(\)|mul\(\d+,\d+\)`)
+	matches := r.FindAllStringSubmatch(data, -1)
+	// fmt.Println(matches)
+
+	result := 0
+
+	dont := false
+
+	for _, match := range matches {
+		matchVal := match[0]
+
+		if matchVal == "don't()" || (dont && matchVal != "do()") {
+			dont = true
+			continue
+		}
+
+		dont = false
+
+		if strings.HasPrefix(matchVal, "mul") {
+			parsed, _ := strings.CutPrefix(matchVal, "mul")
+			result += calculate(parsed)
+		}
+	}
+
+	fmt.Println("part2:", result)
 }
 
 func handleError(err error) {
