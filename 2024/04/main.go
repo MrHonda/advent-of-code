@@ -12,6 +12,7 @@ func main() {
 	handleError(err)
 
 	part1(parseData(data))
+	part2(parseData(data))
 }
 
 func part1(data []string) {
@@ -21,6 +22,39 @@ func part1(data []string) {
 	result := horizontalCount + verticalCount + diagonalCount
 
 	fmt.Println("part1:", result, "| horizontal:", horizontalCount, "| vertical:", verticalCount, "| diagonal:", diagonalCount)
+}
+
+func part2(data []string) {
+	result := 0
+	grid := make([][]string, len(data))
+
+	for i, line := range data {
+		grid[i] = strings.Split(line, "")
+	}
+
+	for i, row := range grid {
+		for j, col := range row {
+			if col != "A" {
+				continue
+			}
+
+			up := i - 1
+			down := i + 1
+			left := j - 1
+			right := j + 1
+
+			if up < 0 || left < 0 || down >= len(grid) || right >= len(row) {
+				continue
+			}
+
+			if ((grid[up][left] == "M" && grid[down][right] == "S") || (grid[up][left] == "S" && grid[down][right] == "M")) &&
+				((grid[up][right] == "M" && grid[down][left] == "S") || (grid[up][right] == "S" && grid[down][left] == "M")) {
+				result++
+			}
+		}
+	}
+
+	fmt.Println("part2:", result)
 }
 
 func handleError(err error) {
@@ -70,8 +104,8 @@ func getVertical(lines []string) []string {
 
 func getDiagonal(lines []string) []string {
 	const maxLen = 4
-	r1 := regexp.MustCompile("XMAS")
-	r2 := regexp.MustCompile("SAMX")
+	// r1 := regexp.MustCompile("XMAS")
+	// r2 := regexp.MustCompile("SAMX")
 
 	result := []string{}
 
@@ -94,9 +128,9 @@ func getDiagonal(lines []string) []string {
 				break
 			}
 
-			if r1.MatchString(diagLine) || r2.MatchString(diagLine) {
-				fmt.Println(diagLine, "left", "i:", i, "j:", j)
-			}
+			// if r1.MatchString(diagLine) || r2.MatchString(diagLine) {
+			// 	fmt.Println(diagLine, "left", "i:", i, "j:", j)
+			// }
 
 			result = append(result, diagLine)
 
@@ -125,9 +159,9 @@ func getDiagonal(lines []string) []string {
 				break
 			}
 
-			if r1.MatchString(diagLine) || r2.MatchString(diagLine) {
-				fmt.Println(diagLine, "right", "i:", i, "j:", j)
-			}
+			// if r1.MatchString(diagLine) || r2.MatchString(diagLine) {
+			// 	fmt.Println(diagLine, "right", "i:", i, "j:", j)
+			// }
 
 			result = append(result, diagLine)
 
