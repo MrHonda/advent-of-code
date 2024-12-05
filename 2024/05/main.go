@@ -3,8 +3,15 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
+)
+
+const (
+	type_none   = iota
+	type_before = iota
+	type_after  = iota
 )
 
 func main() {
@@ -12,6 +19,7 @@ func main() {
 	handleError(err)
 
 	part1(parseData(string(data)))
+	part2(parseData(string(data)))
 }
 
 func part1(rules [][]int, orders [][]int) {
@@ -39,12 +47,55 @@ func part1(rules [][]int, orders [][]int) {
 
 		if valid {
 			middle := order[(len(order)-1)/2]
-			fmt.Println(order, "middle", middle)
+			// fmt.Println(order, "middle", middle)
 			result += middle
 		}
 	}
 
 	fmt.Println("part1", result)
+}
+
+func part2(rules [][]int, orders [][]int) {
+	result := 0
+
+	for _, order := range orders {
+		valid := true
+		counter := 0
+
+		for {
+			validOrder, index1, index2, invalidType := validateOrder(order, rules)
+
+			if validOrder {
+				break
+			}
+
+			valid = false
+
+			if invalidType == type_after {
+				tmp := order[index2]
+				order = slices.Delete(order, index2, index2+1)
+				order = slices.Insert(order, index1, tmp)
+			} else if invalidType == type_before {
+				tmp := order[index1]
+				order = slices.Delete(order, index1, index1+1)
+				order = slices.Insert(order, index2, tmp)
+			} else {
+				panic("invalid invalidType")
+			}
+
+			counter++
+
+			// fmt.Println(counter)
+		}
+
+		if !valid {
+			middle := order[(len(order)-1)/2]
+			// fmt.Println(order, "middle", middle)
+			result += middle
+		}
+	}
+
+	fmt.Println("part2", result)
 }
 
 func handleError(err error) {
@@ -124,4 +175,25 @@ func canBeBefore(val1 int, val2 int, rules [][]int) bool {
 	}
 
 	return true
+}
+
+// valid, index1, index2, type
+func validateOrder(order []int, rules [][]int) (bool, int, int, int) {
+	for i, val1 := range order {
+		for j, val2 := range order {
+			if i == j {
+				continue
+			}
+
+			if j < i && !canBeBefore(val1, val2, rules) {
+				return false, i, j, type_before
+			}
+
+			if j > i && !canBeAfter(val1, val2, rules) {
+				return false, i, j, type_after
+			}
+		}
+	}
+
+	return true, -1, -1, type_none
 }
