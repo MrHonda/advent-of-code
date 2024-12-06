@@ -28,17 +28,20 @@ func main() {
 }
 
 func part1(grid [][]string) {
-	visited, _ := getVisited(grid)
+	i, j := getGridCurrentPos(grid)
+	visited, _ := getVisited(grid, i, j)
 
 	fmt.Println("part1", len(visited))
 }
 
 func part2(grid [][]string) {
 	result := 0
-	visited, _ := getVisited(grid)
+	i, j := getGridCurrentPos(grid)
+	visited, _ := getVisited(grid, i, j)
 	startI, startJ := getGridCurrentPos(grid)
 
-	for i, visitVal := range visited {
+	for index, visitVal := range visited {
+
 		values := strings.Split(visitVal, ",")
 		valI, err1 := strconv.Atoi(values[0])
 		handleError(err1)
@@ -52,15 +55,14 @@ func part2(grid [][]string) {
 
 		gridVal := grid[valI][valJ]
 		grid[valI][valJ] = block
-		_, loop := getVisited(grid)
+		_, loop := getVisited(grid, i, j)
 		grid[valI][valJ] = gridVal
 
 		if loop {
 			result++
 		}
 
-		println(i, len(visited))
-
+		fmt.Println(index, len(visited))
 	}
 
 	fmt.Println("part2", result)
@@ -96,24 +98,29 @@ func getGridCurrentPos(grid [][]string) (int, int) {
 	panic("current position not found")
 }
 
-func getVisited(grid [][]string) ([]string, bool) {
+func getVisited(grid [][]string, i int, j int) ([]string, bool) {
 	visited := []string{}
 	maxI := len(grid) - 1
 	maxJ := len(grid[0]) - 1
-	i, j := getGridCurrentPos(grid)
 	dir := grid[i][j]
-	tries := len(grid) * len(grid[0])
-	try := 0
+	maxVisits := 5
+
+	visitedCounts := map[string]int{}
 loop:
 	for {
-		if try >= tries {
-			return nil, true
-		}
-
 		currentVisit := strconv.Itoa(i) + "," + strconv.Itoa(j)
 
-		if !slices.Contains(visited, currentVisit) {
+		_, exists := visitedCounts[currentVisit]
+
+		if !exists {
 			visited = append(visited, currentVisit)
+			visitedCounts[currentVisit] = 0
+		} else {
+			visitedCounts[currentVisit]++
+
+			if visitedCounts[currentVisit] >= maxVisits {
+				return nil, true
+			}
 		}
 
 		switch dir {
@@ -164,9 +171,6 @@ loop:
 		default:
 			panic("unkown dir" + dir)
 		}
-
-		try++
-		// println(try, tries)
 	}
 
 	return visited, false
