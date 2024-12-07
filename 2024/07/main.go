@@ -14,24 +14,26 @@ type Calculation struct {
 }
 
 const (
-	op_add      = "+"
-	op_multiple = "*"
+	op_add           = "+"
+	op_multiple      = "*"
+	op_concatenation = "||"
 )
-
-var operators = []string{op_add, op_multiple}
 
 func main() {
 	data, err := os.ReadFile("input.txt")
 	handleError(err)
 
 	part1(parseData(string(data)))
+	part2(parseData(string(data)))
 }
 
 func part1(calculations []Calculation) {
 	result := 0
 
+	operators := []string{op_add, op_multiple}
+
 	for _, calculation := range calculations {
-		combinations := getCombinations(len(calculation.numbers) - 1)
+		combinations := getCombinations(len(calculation.numbers)-1, operators)
 
 		for _, combination := range combinations {
 			val := 0
@@ -55,6 +57,38 @@ func part1(calculations []Calculation) {
 	}
 
 	fmt.Println("part1", result)
+}
+
+func part2(calculations []Calculation) {
+	result := 0
+
+	operators := []string{op_multiple, op_concatenation, op_add}
+
+	for _, calculation := range calculations {
+		combinations := getCombinations(len(calculation.numbers)-1, operators)
+
+		for _, combination := range combinations {
+			val := 0
+			for i, op := range combination {
+				if i == 0 {
+					val = calculate(calculation.numbers[i], calculation.numbers[i+1], op)
+				} else {
+					val = calculate(val, calculation.numbers[i+1], op)
+				}
+
+				if val > calculation.result {
+					break
+				}
+			}
+
+			if val == calculation.result {
+				result += val
+				break
+			}
+		}
+	}
+
+	fmt.Println("part2", result)
 }
 
 func handleError(err error) {
@@ -94,12 +128,17 @@ func calculate(val1 int, val2 int, operator string) int {
 		return val1 + val2
 	case op_multiple:
 		return val1 * val2
+	case op_concatenation:
+		val, err := strconv.Atoi(strconv.Itoa(val1) + strconv.Itoa(val2))
+		handleError(err)
+
+		return val
 	default:
 		panic("invalid operator" + operator)
 	}
 }
 
-func getCombinations(count int) [][]string {
+func getCombinations(count int, operators []string) [][]string {
 	totalCombinations := int(math.Pow(float64(len(operators)), float64(count)))
 	combinations := make([][]string, 0, totalCombinations)
 
