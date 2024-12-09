@@ -7,6 +7,16 @@ import (
 	"strings"
 )
 
+type File struct {
+	id         int
+	startIndex int
+	endIndex   int
+}
+
+func (file File) size() int {
+	return file.endIndex - file.startIndex + 1
+}
+
 const freeSpaceVal = -1
 
 func main() {
@@ -14,6 +24,8 @@ func main() {
 	handleError(err)
 
 	part1(parseData(string(data)))
+	blocks, _ := parseData(string(data))
+	part2(blocks)
 }
 
 func part1(blocks []int, freeBlocks int) {
@@ -31,6 +43,46 @@ func part1(blocks []int, freeBlocks int) {
 	}
 
 	fmt.Println("part1", calculateCheckSum(blocks))
+}
+
+func part2(blocks []int) {
+	processedFiles := map[int]bool{}
+
+	for i := len(blocks) - 1; i >= 0; i-- {
+		block := blocks[i]
+
+		if block == freeSpaceVal {
+			continue
+		}
+
+		file := findFile(blocks, i)
+		fileSize := file.size()
+		i -= fileSize - 1
+
+		if processedFiles[file.id] {
+			continue
+		}
+
+		if file.startIndex == 0 {
+			break
+		}
+
+		processedFiles[file.id] = true
+
+		freeStart, freeEnd := findFreeSpace(blocks, fileSize, i)
+
+		if freeStart >= 0 && freeEnd >= 0 {
+			for j := freeStart; j <= freeEnd; j++ {
+				blocks[j] = file.id
+			}
+
+			for j := file.startIndex; j <= file.endIndex; j++ {
+				blocks[j] = freeSpaceVal
+			}
+		}
+	}
+
+	fmt.Println("part2", calculateCheckSum(blocks))
 }
 
 func handleError(err error) {
@@ -92,4 +144,55 @@ func calculateCheckSum(blocks []int) int {
 	}
 
 	return result
+}
+
+func findFile(blocks []int, endI int) File {
+	foundId := -1
+	startIndex := 0
+	endIndex := -1
+
+	for i := endI; i >= 0; i-- {
+		block := blocks[i]
+
+		if block == freeSpaceVal {
+			if foundId != -1 {
+				startIndex = i + 1
+				break
+			}
+		}
+
+		if foundId == -1 {
+			foundId = block
+			endIndex = i
+		} else if block != foundId {
+			startIndex = i + 1
+			break
+		}
+	}
+
+	return File{id: foundId, startIndex: startIndex, endIndex: endIndex}
+}
+
+func findFreeSpace(blocks []int, size int, maxI int) (int, int) {
+	startIndex := -1
+
+	for i, block := range blocks {
+		if i >= maxI {
+			return -1, -1
+		}
+		if block != freeSpaceVal {
+			startIndex = -1
+			continue
+		}
+
+		if startIndex == -1 {
+			startIndex = i
+		}
+
+		if i-startIndex+1 >= size {
+			return startIndex, i
+		}
+	}
+
+	return -1, -1
 }
