@@ -40,6 +40,7 @@ func main() {
 	handleError(err)
 
 	part1(parseData(string(data)))
+	part2(parseData(string(data)))
 }
 
 func part1(grid [][]int) {
@@ -51,6 +52,17 @@ func part1(grid [][]int) {
 	}
 
 	fmt.Println("part1", result)
+}
+
+func part2(grid [][]int) {
+	trailheads := findTrailheads(grid)
+	result := 0
+
+	for _, trailhead := range trailheads {
+		result += score2(grid, trailhead.row, trailhead.col)
+	}
+
+	fmt.Println("part2", result)
 }
 
 func handleError(err error) {
@@ -115,6 +127,7 @@ func score(grid [][]int, r int, c int) int {
 			if neighbor.row < 0 || neighbor.col < 0 || neighbor.row >= rowsCount || neighbor.col >= colsCount {
 				continue
 			}
+
 			if grid[neighbor.row][neighbor.col] != grid[currPos.row][currPos.col]+1 {
 				continue
 			}
@@ -134,4 +147,52 @@ func score(grid [][]int, r int, c int) int {
 	}
 
 	return summits
+}
+
+func score2(grid [][]int, r int, c int) int {
+	rowsCount := len(grid)
+	colsCount := len(grid[0])
+
+	queue := Queue{}
+	queue.Enqueue(Position{row: r, col: c})
+	seen := map[Position]int{}
+	seen[Position{row: r, col: c}] = 1
+	trails := 0
+
+	for len(queue.items) > 0 {
+		currPos := queue.Dequeue()
+
+		if grid[currPos.row][currPos.col] == 9 {
+			trails += seen[currPos]
+		}
+
+		neighbors := []Position{
+			{currPos.row - 1, currPos.col},
+			{currPos.row, currPos.col + 1},
+			{currPos.row + 1, currPos.col},
+			{currPos.row, currPos.col - 1},
+		}
+
+		for _, neighbor := range neighbors {
+			if neighbor.row < 0 || neighbor.col < 0 || neighbor.row >= rowsCount || neighbor.col >= colsCount {
+				continue
+			}
+
+			if grid[neighbor.row][neighbor.col] != grid[currPos.row][currPos.col]+1 {
+				continue
+			}
+
+			_, exists := seen[neighbor]
+			if exists {
+				seen[neighbor] += seen[currPos]
+				continue
+			}
+
+			seen[neighbor] = seen[currPos]
+
+			queue.Enqueue(neighbor)
+		}
+	}
+
+	return trails
 }
