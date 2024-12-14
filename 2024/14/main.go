@@ -18,6 +18,7 @@ func main() {
 	handleError(err)
 
 	part1(parseData(string(data)))
+	part2(parseData(string(data)))
 }
 
 func part1(robots [][4]int) {
@@ -44,6 +45,33 @@ func part1(robots [][4]int) {
 	}
 
 	fmt.Println("part1", result)
+}
+
+func part2(robots [][4]int) {
+	moves := 0
+	for {
+		moves++
+		positions := map[[2]int]bool{}
+		overlap := false
+
+		for i, robot := range robots {
+			pos := move(robot, 1)
+			robots[i][0] = pos[0]
+			robots[i][1] = pos[1]
+
+			if positions[pos] {
+				overlap = true
+			}
+
+			positions[pos] = true
+		}
+
+		if !overlap {
+			break
+		}
+	}
+
+	fmt.Println("part2", moves)
 }
 
 func handleError(err error) {
